@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 def run_pipeline() -> dict:
     """One full cycle. Returns counts; safe to call from scheduler or API."""
     counts = {"found": 0, "matched": 0, "alerted": 0, "coupons": 0}
+    database.init_db()  # idempotent: guarantees schema on fresh checkouts (CI)
     with database.get_connection() as conn:
         watchlist = matcher.load_watchlist(conn)
         zip_code = database.get_setting(conn, "zip_code", config.ZIP_CODE) or config.ZIP_CODE
