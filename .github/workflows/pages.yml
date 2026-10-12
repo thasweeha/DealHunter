@@ -35,11 +35,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r requirements.txt
-      # Browser binaries (user-space) + OS deps (needs sudo) installed separately:
-      # `--with-deps` fails without root, so split the two steps.
+      - run: python -m pip install -r requirements.txt
+      # Browser binaries (user-space) + OS deps (needs root) installed separately.
+      # NOTE: plain `sudo python` would resolve to /usr/bin/python (no packages!),
+      # so pass the full setup-python interpreter path through sudo instead.
       - run: python -m playwright install chromium
-      - run: sudo python -m playwright install-deps chromium
+      - run: sudo $(which python) -m playwright install-deps chromium
       - run: python -c "from app.scheduler import run_pipeline; print(run_pipeline())"
       - run: python scripts/export_static.py
       - run: |
