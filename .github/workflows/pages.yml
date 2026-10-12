@@ -36,7 +36,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: python -m playwright install --with-deps chromium
+      # Browser binaries (user-space) + OS deps (needs sudo) installed separately:
+      # `--with-deps` fails without root, so split the two steps.
+      - run: python -m playwright install chromium
+      - run: sudo python -m playwright install-deps chromium
       - run: python -c "from app.scheduler import run_pipeline; print(run_pipeline())"
       - run: python scripts/export_static.py
       - run: |
