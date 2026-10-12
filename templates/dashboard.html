@@ -68,13 +68,16 @@
 
 <main class="p-4 sm:p-6 space-y-10">
 {% macro panes(deal_list, half) %}
-<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 items-start">
+<div class="space-y-3">
   {% for cat, label in [('electronics','Electronics'),('groceries','Groceries & Vegetables'),('cleaning','Cleaning Supplies'),('personal_care','Personal Care & Non-Expiring'),('apparel','Apparel & Clothing'),('home_tools','Home & Tools')] %}
-  <section class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm" data-half="{{ half }}" data-section="{{ cat }}">
-    <div class="px-4 py-3 border-b border-stone-200 bg-stone-50 flex justify-between items-center">
-      <h2 class="font-bold tracking-wide">{{ label }}</h2>
+  <details class="group bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm" data-half="{{ half }}" data-section="{{ cat }}" open>
+    <summary class="px-4 py-3 border-b border-stone-200 bg-stone-200 flex justify-between items-center cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-stone-300">
+      <span class="flex items-center gap-2">
+        <span class="text-xs text-stone-400 transition-transform group-open:rotate-90">▶</span>
+        <h2 class="font-bold tracking-wide inline">{{ label }}</h2>
+      </span>
       <span class="pane-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5" data-cat="{{ cat }}">{{ deal_list | selectattr('category', 'equalto', cat) | list | length }} active</span>
-    </div>
+    </summary>
     <div class="pane-list p-2 space-y-2 max-h-[75vh] overflow-y-auto">
       {% for d in deal_list if d.category == cat %}
       <article class="deal-card flex gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-stone-50 hover:border-orange-300 hover:shadow-sm transition"
@@ -110,7 +113,7 @@
       <p class="text-xs text-stone-400 p-2">No active deals — waiting for next scrape.</p>
       {% endfor %}
     </div>
-  </section>
+  </details>
   {% endfor %}
 </div>
 {% endmacro %}
@@ -205,6 +208,24 @@
   }
 
   initRetailers();
+  // Collapse state persists per pane across reloads (default: open).
+  const PANE_KEY = 'dh-panes';
+  try {
+    const st = JSON.parse(localStorage.getItem(PANE_KEY) || '{}');
+    document.querySelectorAll('details[data-half][data-section]').forEach(el => {
+      const k = el.dataset.half + ':' + el.dataset.section;
+      if (k in st) el.open = !!st[k];
+    });
+  } catch {}
+  document.querySelectorAll('details[data-half][data-section]').forEach(el => {
+    el.addEventListener('toggle', () => {
+      const st = {};
+      document.querySelectorAll('details[data-half][data-section]').forEach(x => {
+        st[x.dataset.half + ':' + x.dataset.section] = x.open;
+      });
+      try { localStorage.setItem(PANE_KEY, JSON.stringify(st)); } catch {}
+    });
+  });
   applyFilters(); // default: newest first
   ['f-retailer', 'f-sort', 'f-coupon', 'f-search'].forEach(id => {
     $(id).addEventListener(id === 'f-search' ? 'input' : 'change', applyFilters);

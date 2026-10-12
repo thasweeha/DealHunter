@@ -94,18 +94,37 @@ function cardHTML(d) {
 }
 
 function panesHTML(deals, half) {
-  return `<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 items-start">` + CATS.map(([cat, label]) => {
+  const saved = loadPaneState();
+  return `<div class="space-y-3">` + CATS.map(([cat, label]) => {
     const list = deals.filter(d => d.category === cat);
-    return `<section class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm" data-half="${half}" data-section="${cat}">
-      <div class="px-4 py-3 border-b border-stone-200 bg-stone-50 flex justify-between items-center">
-        <h2 class="font-bold tracking-wide">${label}</h2>
+    const key = half + ':' + cat;
+    const open = (key in saved) ? !!saved[key] : true;
+    return `<details class="group bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm" data-half="${half}" data-section="${cat}"${open ? ' open' : ''}>
+      <summary class="px-4 py-3 border-b border-stone-200 bg-stone-200 flex justify-between items-center cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-stone-300">
+        <span class="flex items-center gap-2">
+          <span class="text-xs text-stone-400 transition-transform group-open:rotate-90">▶</span>
+          <h2 class="font-bold tracking-wide inline">${label}</h2>
+        </span>
         <span class="pane-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5">${list.length} active</span>
-      </div>
+      </summary>
       <div class="pane-list p-2 space-y-2 max-h-[75vh] overflow-y-auto">
         ${list.length ? list.map(cardHTML).join('') : '<p class="text-xs text-stone-400 p-2">No active deals in this snapshot.</p>'}
       </div>
-    </section>`;
+    </details>`;
   }).join('') + `</div>`;
+}
+
+function loadPaneState() {
+  try { return JSON.parse(localStorage.getItem('dh-panes') || '{}'); }
+  catch { return {}; }
+}
+
+function savePaneState() {
+  const st = {};
+  document.querySelectorAll('details[data-half][data-section]').forEach(x => {
+    st[x.dataset.half + ':' + x.dataset.section] = x.open;
+  });
+  try { localStorage.setItem('dh-panes', JSON.stringify(st)); } catch {}
 }
 
 function render() {
@@ -131,6 +150,9 @@ function render() {
       <span class="ml-auto">ZIP ${esc(META.zip_code)} · DealHunter static edition</span>
     </footer>`;
   initRetailers();
+  document.querySelectorAll('details[data-half][data-section]').forEach(el => {
+    el.addEventListener('toggle', savePaneState);
+  });
   applyFilters();
 }
 
