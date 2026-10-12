@@ -6,4 +6,5 @@ venv/
 data/*.db
 data/*.db-*
 data/*.log
+public/data.json
 playwright-browsers/
