@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DealHunter Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: #faf6f1; font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  input, select, button { font-family: inherit; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+</style>
+</head>
+<body class="text-stone-800">
+<div class="sticky top-0 z-10 shadow-sm">
+<header class="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 bg-white border-b border-stone-200">
+  <a href="./" class="flex items-center gap-2 mr-auto">
+    <img src="favicon.svg" alt="DealHunter logo" class="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-sm" />
+    <span class="text-lg sm:text-[22px] font-extrabold tracking-tight whitespace-nowrap">DealHunter</span>
+  </a>
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm">
+    <span class="whitespace-nowrap">Active deals: <b id="stat-total" class="text-orange-600">–</b></span>
+    <span class="whitespace-nowrap hidden sm:inline">Coupons: <b id="stat-coupons" class="text-amber-600">–</b></span>
+    <span class="flex items-center gap-1 whitespace-nowrap" title="Static snapshot — refreshed by scheduled scans"><span class="w-2 h-2 rounded-full bg-orange-500 pulse inline-block"></span>SNAPSHOT</span>
+    <button onclick="loadData()" class="h-8 rounded bg-orange-600 hover:bg-orange-700 text-white text-[13px] font-semibold px-3">↻ Refresh</button>
+  </div>
+</header>
+<div class="px-4 sm:px-6 py-2 bg-white border-b border-stone-200 flex flex-wrap items-center gap-x-4 gap-y-2">
+  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">Retailer:
+    <select id="f-retailer" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
+      <option value="">All retailers</option>
+    </select>
+  </label>
+  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">Sort:
+    <select id="f-sort" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
+      <option value="new">Newest first</option>
+      <option value="plow">Price: low to high</option>
+      <option value="phigh">Price: high to low</option>
+      <option value="disc">Biggest discount</option>
+    </select>
+  </label>
+  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600"><input type="checkbox" id="f-coupon" class="h-4 w-4 accent-orange-600" /> Coupon only</label>
+  <input id="f-search" type="search" placeholder="Search deals…" class="h-8 rounded border border-stone-300 bg-white px-2.5 text-[13px] text-stone-800 shadow-sm w-52 placeholder:text-stone-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
+  <span id="f-count" class="ml-auto text-xs text-stone-500"></span>
+</div>
+</div>
+
+<main class="p-4 sm:p-6 space-y-10" id="halves"></main>
+
+<script>
+const CATS = [
+  ['electronics', 'Electronics'],
+  ['groceries', 'Groceries & Vegetables'],
+  ['cleaning', 'Cleaning Supplies'],
+  ['personal_care', 'Personal Care & Non-Expiring'],
+  ['apparel', 'Apparel & Clothing'],
+  ['home_tools', 'Home & Tools'],
+];
+let ALL = [];
+let META = {zip_code: '', generated_at: ''};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const num = (el, k) => parseFloat(el.dataset[k]);
+
+function cardHTML(d) {
+  const thumb = d.image_url
+    ? `<a href="${esc(d.url)}" target="_blank" rel="noopener" class="shrink-0"><img src="${esc(d.image_url)}" alt="" loading="lazy" class="w-16 h-16 rounded-md object-cover border border-stone-200 bg-white" /></a>`
+    : `<span class="w-16 h-16 rounded-md bg-stone-200 flex items-center justify-center text-2xl shrink-0">🏷️</span>`;
+  const price = d.price != null
+    ? `<b class="tnum">$${esc(d.price)}</b>` + (d.original_price != null ? ` <s class="text-stone-400 text-xs">$${esc(d.original_price)}</s>` : '')
+    : `<b class="text-[13px]">See deal</b>`;
+  return `<article class="deal-card flex gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-stone-50 hover:border-orange-300 hover:shadow-sm transition"
+    data-store="${esc(d.store)}" data-price="${d.price != null ? d.price : -1}"
+    data-discount="${d.discount_pct != null ? d.discount_pct : -1}"
+    data-seen="${esc(d.last_seen)}" data-coupon="${d.coupon_available ? 1 : 0}"
+    data-title="${esc((d.display_title || '').toLowerCase())}">
+    ${thumb}
+    <div class="min-w-0 flex-1">
+      <div class="flex gap-1.5 items-start">
+        <a href="${esc(d.url)}" target="_blank" rel="noopener" class="text-[13px] font-semibold leading-snug line-clamp-2 hover:text-orange-700">${esc(d.display_title)}</a>
+        ${d.coupon_available ? '<span title="Coupon available" class="text-[10px] shrink-0">🏷️</span>' : ''}
+      </div>
+      <div class="mt-0.5 text-[13px]">${price}${d.hot ? ' 🔥' : ''}</div>
+      <div class="text-[11px] text-stone-500 truncate">${esc(d.store)} · ${esc(d.when_label)}${d.shop_url ? ` · <a href="${esc(d.shop_url)}" target="_blank" rel="noopener" title="Search this product" class="font-semibold text-stone-600 hover:text-orange-700 hover:underline">🔍 ${esc(d.store)}</a>` : ''}</div>
+    </div>
+  </article>`;
+}
+
+function panesHTML(deals, half) {
+  return `<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 items-start">` + CATS.map(([cat, label]) => {
+    const list = deals.filter(d => d.category === cat);
+    return `<section class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm" data-half="${half}" data-section="${cat}">
+      <div class="px-4 py-3 border-b border-stone-200 bg-stone-50 flex justify-between items-center">
+        <h2 class="font-bold tracking-wide">${label}</h2>
+        <span class="pane-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5">${list.length} active</span>
+      </div>
+      <div class="pane-list p-2 space-y-2 max-h-[75vh] overflow-y-auto">
+        ${list.length ? list.map(cardHTML).join('') : '<p class="text-xs text-stone-400 p-2">No active deals in this snapshot.</p>'}
+      </div>
+    </section>`;
+  }).join('') + `</div>`;
+}
+
+function render() {
+  const local = ALL.filter(d => d.scope === 'local');
+  const wide = ALL.filter(d => d.scope !== 'local');
+  $('halves').innerHTML = `
+    <div data-halfblock="local">
+      <div class="flex flex-wrap items-center gap-3 mb-3">
+        <h2 class="text-lg font-extrabold">🏬 Near ${esc(META.zip_code)} <span class="text-sm font-medium text-stone-500">in-store &amp; pickup</span></h2>
+        <span class="half-count text-xs bg-orange-100 text-orange-800 rounded-full px-2 py-0.5">${local.length} deals</span>
+      </div>
+      ${panesHTML(local, 'local')}
+    </div>
+    <div data-halfblock="wide">
+      <div class="flex flex-wrap items-center gap-3 mb-3">
+        <h2 class="text-lg font-extrabold">🌐 Online &amp; nationwide <span class="text-sm font-medium text-stone-500">ships to ${esc(META.zip_code)}</span></h2>
+        <span class="half-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5">${wide.length} deals</span>
+      </div>
+      ${panesHTML(wide, 'wide')}
+    </div>
+    <footer class="px-1 py-3 text-xs text-stone-500 flex flex-wrap gap-x-4 gap-y-1">
+      <span>Snapshot: ${esc(META.generated_at || 'never')} (UTC) · rescans every 6 hours</span>
+      <span class="ml-auto">ZIP ${esc(META.zip_code)} · DealHunter static edition</span>
+    </footer>`;
+  initRetailers();
+  applyFilters();
+}
+
+async function loadData() {
+  const r = await fetch('data.json', {cache: 'no-store'});
+  const j = await r.json();
+  ALL = j.deals || [];
+  META = {zip_code: j.zip_code || '', generated_at: j.generated_at || ''};
+  $('stat-total').textContent = (j.stats && j.stats.total) ?? ALL.length;
+  $('stat-coupons').textContent = (j.stats && j.stats.coupons) ?? '–';
+  render();
+}
+
+// ---- filters (same behavior as the live dashboard) ----
+function initRetailers() {
+  const sel = $('f-retailer');
+  sel.length = 1;
+  const stores = [...new Set(ALL.map(d => d.store).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  for (const s of stores) {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s;
+    sel.appendChild(o);
+  }
+}
+
+function sortKey(card, mode) {
+  if (mode === 'plow') return num(card, 'price') < 0 ? Infinity : num(card, 'price');
+  if (mode === 'phigh') return num(card, 'price') < 0 ? -Infinity : -num(card, 'price');
+  if (mode === 'disc') return -num(card, 'discount');
+  return card.dataset.seen;
+}
+
+function applyFilters() {
+  const retailer = $('f-retailer').value;
+  const mode = $('f-sort').value;
+  const couponOnly = $('f-coupon').checked;
+  const q = $('f-search').value.trim().toLowerCase();
+  let visibleTotal = 0;
+  document.querySelectorAll('[data-halfblock]').forEach(half => {
+    let halfVisible = 0;
+    half.querySelectorAll('[data-section]').forEach(sec => {
+      const list = sec.querySelector('.pane-list');
+      const cards = [...sec.querySelectorAll('.deal-card')];
+      let visible = 0;
+      for (const c of cards) {
+        const ok = (!retailer || c.dataset.store === retailer)
+          && (!couponOnly || c.dataset.coupon === '1')
+          && (!q || c.dataset.title.includes(q));
+        c.style.display = ok ? '' : 'none';
+        if (ok) visible++;
+      }
+      const shown = cards.filter(c => c.style.display !== 'none');
+      shown.sort((a, b) => {
+        const ka = sortKey(a, mode), kb = sortKey(b, mode);
+        if (mode === 'new') return ka < kb ? 1 : ka > kb ? -1 : 0;
+        return ka < kb ? -1 : ka > kb ? 1 : 0;
+      });
+      shown.forEach(c => list.appendChild(c));
+      sec.querySelector('.pane-count').textContent = visible + ' active';
+      sec.style.display = visible ? '' : 'none';
+      halfVisible += visible;
+    });
+    const hc = half.querySelector('.half-count');
+    if (hc) hc.textContent = halfVisible + ' deals';
+    visibleTotal += halfVisible;
+  });
+  $('f-count').textContent = visibleTotal + ' shown';
+}
+
+['f-retailer', 'f-sort', 'f-coupon', 'f-search'].forEach(id => {
+  $(id).addEventListener(id === 'f-search' ? 'input' : 'change', applyFilters);
+});
+
+loadData().catch(() => {
+  $('halves').innerHTML = '<p class="text-sm text-stone-500">Could not load <code>data.json</code> — no scan has published yet.</p>';
+});
+setInterval(loadData, 10 * 60 * 1000); // pick up newly published snapshots
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+# Scans deals on a schedule, publishes the static dashboard to GitHub Pages.
+#
+# Cadence: every 6 hours (~13 min per scan fits the 2000 min/month free quota).
+# The SQLite DB is committed back so dedup/alert history survives between runs
+# (provider keys are wiped by export_static.py before commit — CI injects them
+# via Secrets). Manual runs: Actions tab -> "Scan and publish" -> Run workflow.
+name: Scan and publish
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ZIP_CODE: "63017"
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+      TAKEADS_KEY: ${{ secrets.TAKEADS_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -m playwright install --with-deps chromium
+      - run: python -c "from app.scheduler import run_pipeline; print(run_pipeline())"
+      - run: python scripts/export_static.py
+      - run: |
+          git config user.name "dealhunter-bot"
+          git config user.email "dealhunter-bot@users.noreply.github.com"
+          git add public/data.json
+          git add -f data/dealhunter.db
+          git diff --cached --quiet || git commit -m "deal snapshot [skip ci]" && git push
+
+  deploy:
+    needs: scan
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deployment
+        uses: actions/deploy-pages@v5
