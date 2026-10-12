@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DealHunter Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Inter first, native system fonts as fallback (offline-safe) */
+  body { background: #faf6f1; font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  input, select, button { font-family: inherit; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+</style>
+</head>
+<body class="text-stone-800">
+<div class="sticky top-0 z-10 shadow-sm">
+<header class="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 bg-white border-b border-stone-200">
+  <a href="/" class="flex items-center gap-2 mr-auto">
+    <img src="/static/favicon.svg" alt="DealHunter logo" class="w-8 h-8 sm:w-10 sm:h-10 drop-shadow-sm" />
+    <span class="text-lg sm:text-[22px] font-extrabold tracking-tight whitespace-nowrap">DealHunter</span>
+  </a>
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm">
+    <span class="whitespace-nowrap">Active deals: <b id="stat-total" class="text-orange-600">{{ stats.total }}</b></span>
+    <span class="whitespace-nowrap hidden sm:inline">Coupons: <b class="text-amber-600">{{ stats.coupons }}</b></span>
+    <span class="flex items-center gap-1 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-orange-500 pulse inline-block"></span>HEALTHY</span>
+    <button onclick="location.reload()" class="h-8 rounded bg-orange-600 hover:bg-orange-700 text-white text-[13px] font-semibold px-3">↻ Refresh</button>
+  </div>
+</header>
+<div class="px-4 sm:px-6 py-2 bg-white border-b border-stone-200 flex flex-wrap items-center gap-x-4 gap-y-2">
+  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">Retailer:
+    <select id="f-retailer" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
+      <option value="">All retailers</option>
+    </select>
+  </label>
+  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">Sort:
+    <select id="f-sort" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
+      <option value="new">Newest first</option>
+      <option value="plow">Price: low to high</option>
+      <option value="phigh">Price: high to low</option>
+      <option value="disc">Biggest discount</option>
+    </select>
+  </label>
+  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600"><input type="checkbox" id="f-coupon" class="h-4 w-4 accent-orange-600" /> Coupon only</label>
+  <input id="f-search" type="search" placeholder="Search deals…" class="h-8 rounded border border-stone-300 bg-white px-2.5 text-[13px] text-stone-800 shadow-sm w-52 placeholder:text-stone-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
+  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">ZIP:
+    <input id="f-zip" type="text" inputmode="numeric" value="{{ zip_code }}" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm w-20 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
+    <button id="f-zip-save" class="h-8 rounded bg-stone-800 hover:bg-stone-900 text-white text-[13px] font-semibold px-3">Set</button>
+  </label>
+  <details class="text-[13px]">
+    <summary class="cursor-pointer font-medium text-stone-600 hover:text-orange-700">API keys</summary>
+    <span class="inline-flex flex-wrap items-center gap-2 py-1">
+      <input id="k-serpapi" type="password" placeholder="SerpApi key" autocomplete="off" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] shadow-sm w-36 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
+      <input id="k-takeads" type="password" placeholder="Takeads key" autocomplete="off" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] shadow-sm w-36 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
+      <input id="k-strackr" type="password" placeholder="Strackr key" autocomplete="off" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] shadow-sm w-36 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
+      <button id="k-save" class="h-8 rounded bg-stone-800 hover:bg-stone-900 text-white text-[13px] font-semibold px-3">Save</button>
+      <span id="k-status" class="text-xs text-stone-500"></span>
+    </span>
+  </details>
+  <span id="f-count" class="ml-auto text-xs text-stone-500"></span>
+</div>
+</div>
+
+<main class="p-4 sm:p-6 space-y-10">
+{% macro panes(deal_list, half) %}
+<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 items-start">
+  {% for cat, label in [('electronics','Electronics'),('groceries','Groceries & Vegetables'),('cleaning','Cleaning Supplies'),('personal_care','Personal Care & Non-Expiring'),('apparel','Apparel & Clothing'),('home_tools','Home & Tools')] %}
+  <section class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm" data-half="{{ half }}" data-section="{{ cat }}">
+    <div class="px-4 py-3 border-b border-stone-200 bg-stone-50 flex justify-between items-center">
+      <h2 class="font-bold tracking-wide">{{ label }}</h2>
+      <span class="pane-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5" data-cat="{{ cat }}">{{ deal_list | selectattr('category', 'equalto', cat) | list | length }} active</span>
+    </div>
+    <div class="pane-list p-2 space-y-2 max-h-[75vh] overflow-y-auto">
+      {% for d in deal_list if d.category == cat %}
+      <article class="deal-card flex gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-stone-50 hover:border-orange-300 hover:shadow-sm transition"
+        data-store="{{ d.store }}" data-price="{{ d.price if d.price is not none else -1 }}"
+        data-discount="{{ d.discount_pct if d.discount_pct is not none else -1 }}"
+        data-seen="{{ d.last_seen }}" data-coupon="{{ 1 if d.coupon_available else 0 }}"
+        data-title="{{ d.display_title|lower }}">
+        <a href="{{ d.url }}" target="_blank" class="shrink-0">
+          {% if d.image_url %}
+          <img src="{{ d.image_url }}" alt="" loading="lazy" class="w-16 h-16 rounded-md object-cover border border-stone-200 bg-white" />
+          {% else %}
+          <span class="w-16 h-16 rounded-md bg-stone-200 flex items-center justify-center text-2xl">🏷️</span>
+          {% endif %}
+        </a>
+        <div class="min-w-0 flex-1">
+          <div class="flex gap-1.5 items-start">
+            <a href="{{ d.url }}" target="_blank" class="text-[13px] font-semibold leading-snug line-clamp-2 hover:text-orange-700">{{ d.display_title }}</a>
+            {% if d.coupon_available %}<span title="Coupon available" class="text-[10px] shrink-0">🏷️</span>{% endif %}
+          </div>
+          <div class="mt-0.5 text-[13px]">
+            {% if d.price is not none %}
+            <b class="tnum">${{ d.price }}</b>
+            {% if d.original_price %}<s class="text-stone-400 text-xs">${{ d.original_price }}</s>{% endif %}
+            {% else %}
+            <b class="text-[13px]">See deal</b>
+            {% endif %}
+            {% if d.hot %}🔥{% endif %}
+          </div>
+          <div class="text-[11px] text-stone-500 truncate">{{ d.store }} · {{ d.when_label }}{% if d.shop_url %} · <a href="{{ d.shop_url }}" target="_blank" title="Search this product on {{ d.store }} (opens merchant site)" class="font-semibold text-stone-600 hover:text-orange-700 hover:underline">🔍 {{ d.store }}</a>{% endif %}</div>
+        </div>
+      </article>
+      {% else %}
+      <p class="text-xs text-stone-400 p-2">No active deals — waiting for next scrape.</p>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</div>
+{% endmacro %}
+  <div data-halfblock="local">
+    <div class="flex flex-wrap items-center gap-3 mb-3">
+      <h2 class="text-lg font-extrabold">🏬 Near {{ zip_code }} <span class="text-sm font-medium text-stone-500">in-store &amp; pickup</span></h2>
+      <span class="half-count text-xs bg-orange-100 text-orange-800 rounded-full px-2 py-0.5">{{ local_deals | length }} deals</span>
+    </div>
+    {{ panes(local_deals, 'local') }}
+  </div>
+  <div data-halfblock="wide">
+    <div class="flex flex-wrap items-center gap-3 mb-3">
+      <h2 class="text-lg font-extrabold">🌐 Online &amp; nationwide <span class="text-sm font-medium text-stone-500">ships to {{ zip_code }}</span></h2>
+      <span class="half-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5">{{ wide_deals | length }} deals</span>
+    </div>
+    {{ panes(wide_deals, 'wide') }}
+  </div>
+</main>
+<script>
+  // Live counters refresh every 30s; cards refresh on page reload.
+  // Full pipeline re-scans all sources every 30 min (SCRAPE_INTERVAL_MINUTES).
+  setInterval(async () => {
+    try {
+      const s = await (await fetch('/api/stats')).json();
+      document.getElementById('stat-total').textContent = s.active_deals;
+      // Keep "last scrape" labels live so an open tab never looks frozen.
+      for (const r of (s.last_runs || [])) {
+        const el = document.querySelector(`[data-run-source="${r.source}"]`);
+        if (el) el.textContent = `${r.source} · last scrape: ${r.last_run || 'never'}`;
+      }
+    } catch {}
+  }, 30000);
+
+  // Retailer filter + sort + coupon-only + search (client-side, per pane).
+  const $ = (id) => document.getElementById(id);
+  const num = (el, k) => parseFloat(el.dataset[k]);
+
+  function initRetailers() {
+    const sel = $('f-retailer');
+    const stores = [...new Set(
+      [...document.querySelectorAll('.deal-card')].map(c => c.dataset.store).filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+    for (const s of stores) {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      sel.appendChild(o);
+    }
+  }
+
+  function sortKey(card, mode) {
+    if (mode === 'plow') return num(card, 'price') < 0 ? Infinity : num(card, 'price');
+    if (mode === 'phigh') return num(card, 'price') < 0 ? -Infinity : -num(card, 'price');
+    if (mode === 'disc') return -num(card, 'discount');
+    return card.dataset.seen; // ISO-ish timestamps sort lexicographically; reversed below
+  }
+
+  function applyFilters() {
+    const retailer = $('f-retailer').value;
+    const mode = $('f-sort').value;
+    const couponOnly = $('f-coupon').checked;
+    const q = $('f-search').value.trim().toLowerCase();
+    let visibleTotal = 0;
+    document.querySelectorAll('[data-halfblock]').forEach(half => {
+      let halfVisible = 0;
+      half.querySelectorAll('[data-section]').forEach(sec => {
+        const list = sec.querySelector('.pane-list');
+        const cards = [...sec.querySelectorAll('.deal-card')];
+        let visible = 0;
+        for (const c of cards) {
+          const ok = (!retailer || c.dataset.store === retailer)
+            && (!couponOnly || c.dataset.coupon === '1')
+            && (!q || c.dataset.title.includes(q));
+          c.style.display = ok ? '' : 'none';
+          if (ok) visible++;
+        }
+        const shown = cards.filter(c => c.style.display !== 'none');
+        shown.sort((a, b) => {
+          const ka = sortKey(a, mode), kb = sortKey(b, mode);
+          if (mode === 'new') return ka < kb ? 1 : ka > kb ? -1 : 0;
+          return ka < kb ? -1 : ka > kb ? 1 : 0;
+        });
+        shown.forEach(c => list.appendChild(c));
+        sec.querySelector('.pane-count').textContent = visible + ' active';
+        sec.style.display = visible ? '' : 'none';
+        halfVisible += visible;
+      });
+      const hc = half.querySelector('.half-count');
+      if (hc) hc.textContent = halfVisible + ' deals';
+      visibleTotal += halfVisible;
+    });
+    $('f-count').textContent = visibleTotal + ' of {{ stats.total }} shown';
+  }
+
+  initRetailers();
+  applyFilters(); // default: newest first
+  ['f-retailer', 'f-sort', 'f-coupon', 'f-search'].forEach(id => {
+    $(id).addEventListener(id === 'f-search' ? 'input' : 'change', applyFilters);
+  });
+  $('f-zip-save').addEventListener('click', async () => {    const z = $('f-zip').value.trim();
+    const r = await fetch('/api/settings/zip', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({zip_code: z}),
+    });
+    if (r.ok) {
+      $('f-count').textContent = 'ZIP saved: ' + z + ' — applies from next scan';
+    } else {
+      const e = await r.json().catch(() => ({}));
+      $('f-count').textContent = 'ZIP invalid: ' + (e.detail || r.status);
+    }
+  });
+  // Provider API keys: show configured state (masked), save new values.
+  fetch('/api/settings/keys').then(r => r.json()).then(st => {
+    const names = {'k-serpapi': 'serpapi_key', 'k-takeads': 'takeads_key', 'k-strackr': 'strackr_key'};
+    for (const [id, k] of Object.entries(names)) {
+      if (st[k]) $(id).placeholder += ' (set)';
+    }
+  }).catch(() => {});
+  $('k-save').addEventListener('click', async () => {
+    const keys = {};
+    const map = {'k-serpapi': 'serpapi_key', 'k-takeads': 'takeads_key', 'k-strackr': 'strackr_key'};
+    for (const [id, k] of Object.entries(map)) {
+      if ($(id).value.trim()) keys[k] = $(id).value.trim();
+    }
+    if (!Object.keys(keys).length) {
+      $('k-status').textContent = 'Enter a key first';
+      return;
+    }
+    const r = await fetch('/api/settings/keys', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({keys}),
+    });
+    const j = await r.json().catch(() => ({}));
+    $('k-status').textContent = r.ok ? 'Saved: ' + (j.saved || []).join(', ') + ' (active next scan)' : 'Save failed';
+  });
+</script>
+<footer class="px-6 py-3 text-xs text-stone-500 bg-white border-t border-stone-200 flex flex-wrap gap-x-4 gap-y-1">
+  {% for r in runs %}<span data-run-source="{{ r.source }}">{{ r.source }} · last scrape: {{ r.last_run or 'never' }}</span>{% endfor %}
+  <span class="ml-auto">ZIP {{ zip_code }} · Chesterfield, MO · auto-scan every 30 min</span>
+</footer>
+</body>
+</html>
