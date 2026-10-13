@@ -11,6 +11,11 @@ on:
   schedule:
     - cron: "0 */6 * * *"
   workflow_dispatch:
+    inputs:
+      zip:
+        description: "ZIP code to scan (SerpApi locality + retailer context)"
+        required: false
+        default: "63017"
 
 permissions:
   contents: read
@@ -26,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      ZIP_CODE: "63017"
+      ZIP_CODE: ${{ inputs.zip || '63017' }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
