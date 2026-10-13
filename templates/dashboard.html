@@ -26,39 +26,39 @@
     <span class="text-lg sm:text-[22px] font-extrabold tracking-tight whitespace-nowrap">DealHunter</span>
   </a>
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm">
-    <span class="whitespace-nowrap">Active deals: <b id="stat-total" class="text-orange-600">{{ stats.total }}</b></span>
-    <span class="whitespace-nowrap hidden sm:inline">Coupons: <b class="text-amber-600">{{ stats.coupons }}</b></span>
-    <span class="flex items-center gap-1 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-orange-500 pulse inline-block"></span>HEALTHY</span>
-    <button onclick="location.reload()" class="h-8 rounded bg-orange-600 hover:bg-orange-700 text-white text-[13px] font-semibold px-3">↻ Refresh</button>
+    <span class="whitespace-nowrap">Active deals: <b id="stat-total" class="text-stone-600">{{ stats.total }}</b></span>
+    <span class="whitespace-nowrap hidden sm:inline">Coupons: <b class="text-stone-600">{{ stats.coupons }}</b></span>
+    <span class="flex items-center gap-1 whitespace-nowrap"><span class="w-2 h-2 rounded-full bg-stone-500 pulse inline-block"></span>HEALTHY</span>
+    <button onclick="location.reload()" class="h-8 rounded bg-stone-600 hover:bg-stone-700 text-white text-[13px] font-semibold px-3">↻ Refresh</button>
   </div>
 </header>
 <div class="px-4 sm:px-6 py-2 bg-white border-b border-stone-200 flex flex-wrap items-center gap-x-4 gap-y-2">
   <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">Retailer:
-    <select id="f-retailer" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
+    <select id="f-retailer" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500">
       <option value="">All retailers</option>
     </select>
   </label>
   <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">Sort:
-    <select id="f-sort" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
+    <select id="f-sort" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500">
       <option value="new">Newest first</option>
       <option value="plow">Price: low to high</option>
       <option value="phigh">Price: high to low</option>
       <option value="disc">Biggest discount</option>
     </select>
   </label>
-  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600"><input type="checkbox" id="f-coupon" class="h-4 w-4 accent-orange-600" /> Coupon only</label>
-  <input id="f-search" type="search" placeholder="Search deals…" class="h-8 rounded border border-stone-300 bg-white px-2.5 text-[13px] text-stone-800 shadow-sm w-52 placeholder:text-stone-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
+  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600"><input type="checkbox" id="f-coupon" class="h-4 w-4 accent-stone-600" /> Coupon only</label>
+  <input id="f-search" type="search" placeholder="Search deals…" class="h-8 rounded border border-stone-300 bg-white px-2.5 text-[13px] text-stone-800 shadow-sm w-52 placeholder:text-stone-400 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500" />
   <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">ZIP:
-    <input id="f-zip" type="text" inputmode="numeric" value="{{ zip_code }}" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm w-20 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
-    <button id="f-zip-save" class="h-8 rounded bg-stone-800 hover:bg-stone-900 text-white text-[13px] font-semibold px-3">Set</button>
+    <input id="f-zip" type="text" inputmode="numeric" value="{{ zip_code }}" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm w-20 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500" />
+    <button id="f-zip-save" class="h-8 rounded bg-stone-600 hover:bg-stone-700 text-white text-[13px] font-semibold px-3">Set</button>
   </label>
   <details class="text-[13px]">
-    <summary class="cursor-pointer font-medium text-stone-600 hover:text-orange-700">API keys</summary>
+    <summary class="cursor-pointer font-medium text-stone-600 hover:text-stone-700">API keys</summary>
     <span class="inline-flex flex-wrap items-center gap-2 py-1">
-      <input id="k-serpapi" type="password" placeholder="SerpApi key" autocomplete="off" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] shadow-sm w-36 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
-      <input id="k-takeads" type="password" placeholder="Takeads key" autocomplete="off" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] shadow-sm w-36 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
-      <input id="k-strackr" type="password" placeholder="Strackr key" autocomplete="off" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] shadow-sm w-36 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
-      <button id="k-save" class="h-8 rounded bg-stone-800 hover:bg-stone-900 text-white text-[13px] font-semibold px-3">Save</button>
+      <input id="k-serpapi" type="password" placeholder="SerpApi key" autocomplete="off" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] shadow-sm w-36 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500" />
+      <input id="k-takeads" type="password" placeholder="Takeads key" autocomplete="off" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] shadow-sm w-36 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500" />
+      <input id="k-strackr" type="password" placeholder="Strackr key" autocomplete="off" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] shadow-sm w-36 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500" />
+      <button id="k-save" class="h-8 rounded bg-stone-600 hover:bg-stone-700 text-white text-[13px] font-semibold px-3">Save</button>
       <span id="k-status" class="text-xs text-stone-500"></span>
     </span>
   </details>
@@ -70,17 +70,17 @@
 {% macro panes(deal_list, half) %}
 <div class="space-y-3">
   {% for cat, label in [('electronics','Electronics'),('groceries','Groceries & Vegetables'),('cleaning','Cleaning Supplies'),('personal_care','Personal Care & Non-Expiring'),('apparel','Apparel & Clothing'),('home_tools','Home & Tools')] %}
-  <details class="group bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm" data-half="{{ half }}" data-section="{{ cat }}" open>
-    <summary class="px-4 py-3 border-b border-stone-200 bg-stone-200 flex justify-between items-center cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-stone-300">
+  <details class="group bg-white border border-stone-200 rounded overflow-hidden shadow-sm" data-half="{{ half }}" data-section="{{ cat }}" open>
+    <summary class="px-4 py-1.5 bg-stone-600 text-white flex justify-between items-center cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-stone-700 rounded-t">
       <span class="flex items-center gap-2">
         <span class="text-xs text-stone-400 transition-transform group-open:rotate-90">▶</span>
         <h2 class="font-bold tracking-wide inline">{{ label }}</h2>
       </span>
-      <span class="pane-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5" data-cat="{{ cat }}">{{ deal_list | selectattr('category', 'equalto', cat) | list | length }} active</span>
+      <span class="pane-count text-xs bg-white/20 text-white rounded-full px-2 py-0.5" data-cat="{{ cat }}">{{ deal_list | selectattr('category', 'equalto', cat) | list | length }} active</span>
     </summary>
     <div class="pane-list p-2 space-y-2 max-h-[75vh] overflow-y-auto">
       {% for d in deal_list if d.category == cat %}
-      <article class="deal-card flex gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-stone-50 hover:border-orange-300 hover:shadow-sm transition"
+      <article class="deal-card flex gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-stone-50 hover:border-stone-300 hover:shadow-sm transition"
         data-store="{{ d.store }}" data-price="{{ d.price if d.price is not none else -1 }}"
         data-discount="{{ d.discount_pct if d.discount_pct is not none else -1 }}"
         data-seen="{{ d.last_seen }}" data-coupon="{{ 1 if d.coupon_available else 0 }}"
@@ -94,7 +94,7 @@
         </a>
         <div class="min-w-0 flex-1">
           <div class="flex gap-1.5 items-start">
-            <a href="{{ d.url }}" target="_blank" class="text-[13px] font-semibold leading-snug line-clamp-2 hover:text-orange-700">{{ d.display_title }}</a>
+            <a href="{{ d.url }}" target="_blank" class="text-[13px] font-semibold leading-snug line-clamp-2 hover:text-stone-700">{{ d.display_title }}</a>
             {% if d.coupon_available %}<span title="Coupon available" class="text-[10px] shrink-0">🏷️</span>{% endif %}
           </div>
           <div class="mt-0.5 text-[13px]">
@@ -106,7 +106,7 @@
             {% endif %}
             {% if d.hot %}🔥{% endif %}
           </div>
-          <div class="text-[11px] text-stone-500 truncate">{{ d.store }} · {{ d.when_label }}{% if d.shop_url %} · <a href="{{ d.shop_url }}" target="_blank" title="Search this product on {{ d.store }} (opens merchant site)" class="font-semibold text-stone-600 hover:text-orange-700 hover:underline">🔍 {{ d.store }}</a>{% endif %}</div>
+          <div class="text-[11px] text-stone-500 truncate">{{ d.store }} · {{ d.when_label }}{% if d.shop_url %} · <a href="{{ d.shop_url }}" target="_blank" title="Search this product on {{ d.store }} (opens merchant site)" class="font-semibold text-stone-600 hover:text-stone-700 hover:underline">🔍 {{ d.store }}</a>{% endif %}</div>
         </div>
       </article>
       {% else %}
@@ -119,14 +119,14 @@
 {% endmacro %}
   <div data-halfblock="local">
     <div class="flex flex-wrap items-center gap-3 mb-3">
-      <h2 class="text-lg font-extrabold">🏬 Near {{ zip_code }} <span class="text-sm font-medium text-stone-500">in-store &amp; pickup</span></h2>
-      <span class="half-count text-xs bg-orange-100 text-orange-800 rounded-full px-2 py-0.5">{{ local_deals | length }} deals</span>
+      <h2 class="text-lg font-extrabold">📍 Near {{ zip_code }} <span class="text-sm font-medium text-stone-500">in-store &amp; pickup</span></h2>
+      <span class="half-count text-xs bg-stone-100 text-stone-800 rounded-full px-2 py-0.5">{{ local_deals | length }} deals</span>
     </div>
     {{ panes(local_deals, 'local') }}
   </div>
   <div data-halfblock="wide">
     <div class="flex flex-wrap items-center gap-3 mb-3">
-      <h2 class="text-lg font-extrabold">🌐 Online &amp; nationwide <span class="text-sm font-medium text-stone-500">ships to {{ zip_code }}</span></h2>
+      <h2 class="text-lg font-extrabold">🚚 Online &amp; nationwide <span class="text-sm font-medium text-stone-500">ships to {{ zip_code }}</span></h2>
       <span class="half-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5">{{ wide_deals | length }} deals</span>
     </div>
     {{ panes(wide_deals, 'wide') }}

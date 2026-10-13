@@ -25,28 +25,28 @@
     <span class="text-lg sm:text-[22px] font-extrabold tracking-tight whitespace-nowrap">DealHunter</span>
   </a>
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm">
-    <span class="whitespace-nowrap">Active deals: <b id="stat-total" class="text-orange-600">–</b></span>
-    <span class="whitespace-nowrap hidden sm:inline">Coupons: <b id="stat-coupons" class="text-amber-600">–</b></span>
-    <span class="flex items-center gap-1 whitespace-nowrap" title="Static snapshot — refreshed by scheduled scans"><span class="w-2 h-2 rounded-full bg-orange-500 pulse inline-block"></span>SNAPSHOT</span>
-    <button onclick="loadData()" class="h-8 rounded bg-orange-600 hover:bg-orange-700 text-white text-[13px] font-semibold px-3">↻ Refresh</button>
+    <span class="whitespace-nowrap">Active deals: <b id="stat-total" class="text-stone-600">–</b></span>
+    <span class="whitespace-nowrap hidden sm:inline">Coupons: <b id="stat-coupons" class="text-stone-600">–</b></span>
+    <span class="flex items-center gap-1 whitespace-nowrap" title="Static snapshot — refreshed by scheduled scans"><span class="w-2 h-2 rounded-full bg-stone-500 pulse inline-block"></span>SNAPSHOT</span>
+    <button onclick="loadData()" class="h-8 rounded bg-stone-600 hover:bg-stone-700 text-white text-[13px] font-semibold px-3">↻ Refresh</button>
   </div>
 </header>
 <div class="px-4 sm:px-6 py-2 bg-white border-b border-stone-200 flex flex-wrap items-center gap-x-4 gap-y-2">
   <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">Retailer:
-    <select id="f-retailer" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
+    <select id="f-retailer" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500">
       <option value="">All retailers</option>
     </select>
   </label>
   <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600">Sort:
-    <select id="f-sort" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
+    <select id="f-sort" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500">
       <option value="new">Newest first</option>
       <option value="plow">Price: low to high</option>
       <option value="phigh">Price: high to low</option>
       <option value="disc">Biggest discount</option>
     </select>
   </label>
-  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600"><input type="checkbox" id="f-coupon" class="h-4 w-4 accent-orange-600" /> Coupon only</label>
-  <input id="f-search" type="search" placeholder="Search deals…" class="h-8 rounded border border-stone-300 bg-white px-2.5 text-[13px] text-stone-800 shadow-sm w-52 placeholder:text-stone-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
+  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600"><input type="checkbox" id="f-coupon" class="h-4 w-4 accent-stone-600" /> Coupon only</label>
+  <input id="f-search" type="search" placeholder="Search deals…" class="h-8 rounded border border-stone-300 bg-white px-2.5 text-[13px] text-stone-800 shadow-sm w-52 placeholder:text-stone-400 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500" />
   <span id="f-count" class="ml-auto text-xs text-stone-500"></span>
 </div>
 </div>
@@ -76,7 +76,7 @@ function cardHTML(d) {
   const price = d.price != null
     ? `<b class="tnum">$${esc(d.price)}</b>` + (d.original_price != null ? ` <s class="text-stone-400 text-xs">$${esc(d.original_price)}</s>` : '')
     : `<b class="text-[13px]">See deal</b>`;
-  return `<article class="deal-card flex gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-stone-50 hover:border-orange-300 hover:shadow-sm transition"
+  return `<article class="deal-card flex gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-stone-50 hover:border-stone-300 hover:shadow-sm transition"
     data-store="${esc(d.store)}" data-price="${d.price != null ? d.price : -1}"
     data-discount="${d.discount_pct != null ? d.discount_pct : -1}"
     data-seen="${esc(d.last_seen)}" data-coupon="${d.coupon_available ? 1 : 0}"
@@ -84,11 +84,11 @@ function cardHTML(d) {
     ${thumb}
     <div class="min-w-0 flex-1">
       <div class="flex gap-1.5 items-start">
-        <a href="${esc(d.url)}" target="_blank" rel="noopener" class="text-[13px] font-semibold leading-snug line-clamp-2 hover:text-orange-700">${esc(d.display_title)}</a>
+        <a href="${esc(d.url)}" target="_blank" rel="noopener" class="text-[13px] font-semibold leading-snug line-clamp-2 hover:text-stone-700">${esc(d.display_title)}</a>
         ${d.coupon_available ? '<span title="Coupon available" class="text-[10px] shrink-0">🏷️</span>' : ''}
       </div>
       <div class="mt-0.5 text-[13px]">${price}${d.hot ? ' 🔥' : ''}</div>
-      <div class="text-[11px] text-stone-500 truncate">${esc(d.store)} · ${esc(d.when_label)}${d.shop_url ? ` · <a href="${esc(d.shop_url)}" target="_blank" rel="noopener" title="Search this product" class="font-semibold text-stone-600 hover:text-orange-700 hover:underline">🔍 ${esc(d.store)}</a>` : ''}</div>
+      <div class="text-[11px] text-stone-500 truncate">${esc(d.store)} · ${esc(d.when_label)}${d.shop_url ? ` · <a href="${esc(d.shop_url)}" target="_blank" rel="noopener" title="Search this product" class="font-semibold text-stone-600 hover:text-stone-700 hover:underline">🔍 ${esc(d.store)}</a>` : ''}</div>
     </div>
   </article>`;
 }
@@ -99,13 +99,13 @@ function panesHTML(deals, half) {
     const list = deals.filter(d => d.category === cat);
     const key = half + ':' + cat;
     const open = (key in saved) ? !!saved[key] : true;
-    return `<details class="group bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm" data-half="${half}" data-section="${cat}"${open ? ' open' : ''}>
-      <summary class="px-4 py-3 border-b border-stone-200 bg-stone-200 flex justify-between items-center cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-stone-300">
+    return `<details class="group bg-white border border-stone-200 rounded overflow-hidden shadow-sm" data-half="${half}" data-section="${cat}"${open ? ' open' : ''}>
+      <summary class="px-4 py-1.5 bg-stone-600 text-white flex justify-between items-center cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-stone-700 rounded-t">
         <span class="flex items-center gap-2">
           <span class="text-xs text-stone-400 transition-transform group-open:rotate-90">▶</span>
           <h2 class="font-bold tracking-wide inline">${label}</h2>
         </span>
-        <span class="pane-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5">${list.length} active</span>
+        <span class="pane-count text-xs bg-white/20 text-white rounded-full px-2 py-0.5">${list.length} active</span>
       </summary>
       <div class="pane-list p-2 space-y-2 max-h-[75vh] overflow-y-auto">
         ${list.length ? list.map(cardHTML).join('') : '<p class="text-xs text-stone-400 p-2">No active deals in this snapshot.</p>'}
@@ -133,14 +133,14 @@ function render() {
   $('halves').innerHTML = `
     <div data-halfblock="local">
       <div class="flex flex-wrap items-center gap-3 mb-3">
-        <h2 class="text-lg font-extrabold">🏬 Near ${esc(META.zip_code)} <span class="text-sm font-medium text-stone-500">in-store &amp; pickup</span></h2>
-        <span class="half-count text-xs bg-orange-100 text-orange-800 rounded-full px-2 py-0.5">${local.length} deals</span>
+        <h2 class="text-lg font-extrabold">📍 Near ${esc(META.zip_code)} <span class="text-sm font-medium text-stone-500">in-store &amp; pickup</span></h2>
+        <span class="half-count text-xs bg-stone-100 text-stone-800 rounded-full px-2 py-0.5">${local.length} deals</span>
       </div>
       ${panesHTML(local, 'local')}
     </div>
     <div data-halfblock="wide">
       <div class="flex flex-wrap items-center gap-3 mb-3">
-        <h2 class="text-lg font-extrabold">🌐 Online &amp; nationwide <span class="text-sm font-medium text-stone-500">ships to ${esc(META.zip_code)}</span></h2>
+        <h2 class="text-lg font-extrabold">🚚 Online &amp; nationwide <span class="text-sm font-medium text-stone-500">ships to ${esc(META.zip_code)}</span></h2>
         <span class="half-count text-xs bg-stone-200 text-stone-700 rounded-full px-2 py-0.5">${wide.length} deals</span>
       </div>
       ${panesHTML(wide, 'wide')}
