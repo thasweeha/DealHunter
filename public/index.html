@@ -47,10 +47,6 @@
   </label>
   <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600"><input type="checkbox" id="f-coupon" class="h-4 w-4 accent-orange-600" /> Coupon only</label>
   <input id="f-search" type="search" placeholder="Search deals…" class="h-8 rounded border border-stone-300 bg-white px-2.5 text-[13px] text-stone-800 shadow-sm w-52 placeholder:text-stone-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
-  <label class="flex items-center gap-2 text-[13px] font-medium text-stone-600" title="Snapshots are built per ZIP — saving here queues a fresh scan">ZIP:
-    <input id="f-zip" type="text" inputmode="numeric" value="" class="h-8 rounded border border-stone-300 bg-white px-2 text-[13px] text-stone-800 shadow-sm w-20 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500" />
-    <button id="f-zip-scan" class="h-8 rounded bg-stone-800 hover:bg-stone-900 text-white text-[13px] font-semibold px-3">Scan</button>
-  </label>
   <span id="f-count" class="ml-auto text-xs text-stone-500"></span>
 </div>
 </div>
@@ -167,7 +163,6 @@ async function loadData() {
   META = {zip_code: j.zip_code || '', generated_at: j.generated_at || ''};
   $('stat-total').textContent = (j.stats && j.stats.total) ?? ALL.length;
   $('stat-coupons').textContent = (j.stats && j.stats.coupons) ?? '–';
-  $('f-zip').value = META.zip_code;
   render();
 }
 
@@ -229,20 +224,6 @@ function applyFilters() {
 
 ['f-retailer', 'f-sort', 'f-coupon', 'f-search'].forEach(id => {
   $(id).addEventListener(id === 'f-search' ? 'input' : 'change', applyFilters);
-});
-
-// Static site can't rescan in-browser: the ZIP box queues a real scan.
-// It copies the ZIP and opens the workflow run page — paste it into the
-// run form's ZIP field and the site rebuilds for that ZIP (~15 min).
-$('f-zip-scan').addEventListener('click', async () => {
-  const z = $('f-zip').value.trim();
-  if (!/^\d{5}(-\d{4})?$/.test(z)) {
-    $('f-count').textContent = 'ZIP must be 5 digits';
-    return;
-  }
-  try { await navigator.clipboard.writeText(z); } catch {}
-  window.open('https://github.com/thasweeha/DealHunter/actions/workflows/pages.yml', '_blank');
-  $('f-count').textContent = 'ZIP copied — paste it into the run form. Site rebuilds in ~15 min.';
 });
 
 loadData().catch(() => {
