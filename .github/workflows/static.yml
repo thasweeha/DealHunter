@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Explicitly use Ubuntu 24.04 to avoid deprecation warnings
     permissions:
       contents: write
       pages: write
@@ -31,9 +31,6 @@ jobs:
       - name: Run Python Scraper
         run: python public/scraper.py
 
-      - name: Setup Pages
-        uses: actions/setup-pages@v5
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -41,6 +38,4 @@ jobs:
           path: public
 
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v5
-        with:
-          page_type: static
+        uses: actions/deploy-pages@v4
