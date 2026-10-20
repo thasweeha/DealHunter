@@ -3,19 +3,25 @@ name: Deploy DealHunter to GitHub Pages
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   schedule:
     - cron: '0 */6 * * *' # Auto-refresh every 6 hours
   workflow_dispatch:      # Manual trigger button
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   deploy:
-    runs-on: ubuntu-24.04 # Explicitly use Ubuntu 24.04 to avoid deprecation warnings
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,11 +37,11 @@ jobs:
       - name: Run Python Scraper
         run: python public/scraper.py
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: dealhunter-site
           path: public
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
