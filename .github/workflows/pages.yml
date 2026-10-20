@@ -10,14 +10,23 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 📂 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 📄 Verify public/index.html exists
-        run: test -f public/index.html
+      - name: Setup Pages
+        uses: actions/setup-pages@v5
 
-      - name: 🚀 Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          # GitHub Pages is deployed from the /public folder
+          publish_dir: /public
+
+      - name: Upload Pages artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gh-pages
+          path: /public
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
